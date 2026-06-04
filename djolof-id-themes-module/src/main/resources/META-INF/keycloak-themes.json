@@ -2,7 +2,11 @@
   "themes": [
     {
       "name": "djolof",
-      "types": ["login"]
+      "types": [
+        "admin",
+        "login",
+        "account"
+    ]
     }
   ]
 }
