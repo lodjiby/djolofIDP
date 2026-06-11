@@ -87,7 +87,6 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.SingleUseObjectKeyModel;
-import org.keycloak.models.SingleUseObjectProvider;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
@@ -601,7 +600,7 @@ public class AuthenticationManager {
         }
 
         try {
-            session.clientPolicy().triggerOnEvent(new LogoutRequestContext());
+            session.clientPolicy().triggerOnEvent(new LogoutRequestContext(client));
         } catch (ClientPolicyException cpe) {
             event.event(EventType.LOGOUT);
             event.detail(Details.REASON, Details.CLIENT_POLICY_ERROR);
@@ -1087,8 +1086,8 @@ public class AuthenticationManager {
                     return handleActionTokenVerificationException(session, event, Errors.EXPIRED_CODE, Messages.EXPIRED_ACTION);
                 }
 
-                SingleUseObjectProvider singleUseObjectProvider = session.singleUseObjects();
-                if (!singleUseObjectProvider.putIfAbsent(actionTokenKeyToInvalidate + SingleUseObjectProvider.REVOKED_KEY, actionTokenKey.getExp() - Time.currentTime() + CLOCK_SKEW_SECONDS)) {
+                var revokedTokens = session.revokedTokens();
+                if (!revokedTokens.put(actionTokenKeyToInvalidate, actionTokenKey.getExp() - Time.currentTime() + CLOCK_SKEW_SECONDS)) {
                     return handleActionTokenVerificationException(session, event, Errors.EXPIRED_CODE, Messages.EXPIRED_ACTION);
                 }
             }
